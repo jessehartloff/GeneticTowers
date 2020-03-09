@@ -4,6 +4,7 @@ object AimBot {
 
   val numberOfDimensions: Int = 1
   val projectileSpeed: Double = 7.0
+  val delta: Double = 0.0001
 
   def costFunction(sourceLocation: PhysicsVector, targetLocation: PhysicsVector,
                    targetVelocity: PhysicsVector): PhysicsVector => Double = {
@@ -14,7 +15,7 @@ object AimBot {
         targetLocation, targetVelocity,
         Double.PositiveInfinity,
         1.0, 1.0,
-        0, 20
+        0, 10
       )
     }
 
@@ -26,47 +27,45 @@ object AimBot {
                     time: Double, dt: Double,
                     depth: Int, maxDepth: Int): Double = {
 
-    if (depth == maxDepth) {
+    if (depth == maxDepth || dt < delta) {
       minDistance
     } else {
-      val newProjectileLocation = new PhysicsVector(
-        sourceLocation.x + projectileVelocity.x * time,
-        sourceLocation.y + projectileVelocity.y * time
-      )
-      val newTargetLocation = new PhysicsVector(
-        targetLocation.x + targetVelocity.x * time,
-        targetLocation.y + targetVelocity.y * time
-      )
+      val distance = computeDistance(sourceLocation, projectileVelocity, targetLocation, targetVelocity, time)
+      val distanceAhead = computeDistance(sourceLocation, projectileVelocity, targetLocation, targetVelocity, time + delta)
 
-      val distance = newProjectileLocation.distance2d(newTargetLocation)
-      val newMinDistance = Math.min(distance, minDistance)
-
-      if (distance > minDistance) {
-        // Base Case: Projectile is getting further away from the target
-        newMinDistance
-      } else {
-        val lookAheadDistance = recursiveCost(
+      if (distanceAhead < distance) {
+        recursiveCost(
           sourceLocation, projectileVelocity,
           targetLocation, targetVelocity,
-          newMinDistance,
+          distance,
           time + dt, dt,
           depth + 1, maxDepth
         )
-        if (lookAheadDistance < newMinDistance) {
-          // a better solution was found by looking forward in time
-          lookAheadDistance
-        } else {
-          // look for a better solution by moving backwards in time at shorter intervals
-          recursiveCost(
-            sourceLocation, projectileVelocity,
-            targetLocation, targetVelocity,
-            newMinDistance,
-            time - (2.0 * dt / 3.0), dt / 3.0,
-            depth + 1, maxDepth
-          )
-        }
+      } else {
+        recursiveCost(
+          sourceLocation, projectileVelocity,
+          targetLocation, targetVelocity,
+          distance,
+          time - (2.0 * dt / 3.0), dt / 3.0,
+          depth + 1, maxDepth
+        )
       }
+
     }
+  }
+
+  def computeDistance(sourceLocation: PhysicsVector, projectileVelocity: PhysicsVector,
+                      targetLocation: PhysicsVector, targetVelocity: PhysicsVector,
+                      time: Double): Double = {
+    val newProjectileLocation = new PhysicsVector(
+      sourceLocation.x + projectileVelocity.x * time,
+      sourceLocation.y + projectileVelocity.y * time
+    )
+    val newTargetLocation = new PhysicsVector(
+      targetLocation.x + targetVelocity.x * time,
+      targetLocation.y + targetVelocity.y * time
+    )
+    newProjectileLocation.distance2d(newTargetLocation)
   }
 
 
