@@ -19,7 +19,7 @@ class TowerServer() {
 
 }
 
-object MMOServer {
+object TowerServer {
   def main(args: Array[String]): Unit = {
     new TowerServer()
   }

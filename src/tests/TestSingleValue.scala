@@ -13,9 +13,10 @@ class TestSingleValue extends FunSuite {
   }
 
 
-  test("Genetic Algorithm Finds a Random Number") {
+  test("Genetic Algorithm Finds a Single Number") {
     val hiddenNumber = 50.0
-    val computed = GeneticAlgorithm.geneticAlgorithm(SingleValue.incubator, SingleValue.costFunction(hiddenNumber), 1)
+    val numberOfGenes = 1
+    val computed = GeneticAlgorithm.geneticAlgorithm(SingleValue.incubator, SingleValue.costFunction(hiddenNumber), numberOfGenes)
     println(computed.value)
     assert(equalDoubles(hiddenNumber, computed.value))
   }
